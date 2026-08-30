@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" />
+<title>MindForge Admin Game</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <img id="logo" src="../ico/mindforge_admin_black.png" alt="" class="logo" />
+      <div>
+        <h1>MindForge Admin Game</h1>
+        <span class="sub">Made by GappSheRVIP777</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="dbPath" class="dbpath" title="Файл базы"></span>
+      <button id="btnRefresh" class="btn" title="Обновить список">Обновить</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button id="btnAdd" class="btn primary">+ Новый аккаунт</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <main>
+    <div id="empty" class="empty hidden">
+      <p>Аккаунтов пока нет.</p>
+      <p class="muted">Они появятся после регистрации пользователей в MindForge Quiz.</p>
+    </div>
+    <table id="table" class="hidden">
+      <thead>
+        <tr>
+          <th>Имя</th>
+          <th>Логин</th>
+          <th>Пароль</th>
+          <th class="num">Баланс</th>
+          <th class="num">Покупки</th>
+          <th>Дата создания</th>
+          <th class="actions">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </main>
+</div>
+
+<div id="overlay" class="overlay hidden">
+  <div class="modal">
+    <h2 id="modalTitle">Новый аккаунт</h2>
+    <div id="formAdd" class="form hidden">
+      <label>Имя и фамилия <input id="fName" type="text" placeholder="Иван Иванов" /></label>
+      <label>Логин <input id="fUsername" type="text" placeholder="ivan" /></label>
+      <label>Пароль <input id="fPassword" type="text" placeholder="••••••" /></label>
+      <label>Начальный баланс (₸) <input id="fBalance" type="number" value="1000" min="0" /></label>
+      <div class="modal-buttons">
+        <button id="btnCancel" class="btn">Отмена</button>
+        <button id="btnCreate" class="btn primary">Создать</button>
+      </div>
+    </div>
+
+    <div id="formBalance" class="form hidden">
+      <p id="targetUser" class="muted"></p>
+      <div class="seg">
+        <button id="segAdd" class="btn seg-btn active">Начислить</button>
+        <button id="segRemove" class="btn seg-btn">Списать</button>
+      </div>
+      <label>Сумма (₸) <input id="fAmount" type="number" min="0" step="100" /></label>
+      <div class="modal-buttons">
+        <button id="btnCancel2" class="btn">Отмена</button>
+        <button id="btnApply" class="btn primary">Применить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

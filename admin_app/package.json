@@ -1,0 +1,10 @@
+{
+  "name": "mindforge-admin-game",
+  "version": "1.0.0",
+  "description": "MindForge Admin Game Made by GappSheRVIP777",
+  "main": "electron/main.js",
+  "author": "GappSheRVIP777",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {}
+}

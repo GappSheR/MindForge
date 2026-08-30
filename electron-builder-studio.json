@@ -1,0 +1,34 @@
+{
+  "appId": "com.gappsheervip777.quizstudio",
+  "productName": "QuizForge Studio Made by GappSheRVIP777",
+  "directories": {
+    "output": "dist_exe"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "ico",
+      "to": "ico"
+    },
+    {
+      "from": "sounds",
+      "to": "sounds"
+    },
+    {
+      "from": "fons",
+      "to": "fons"
+    }
+  ],
+  "win": {
+    "target": "portable",
+    "icon": "ico/icon_studio.ico",
+    "artifactName": "QuizForge Studio Made by GappSheRVIP777.exe"
+  },
+  "portable": {
+    "artifactName": "QuizForge Studio Made by GappSheRVIP777.exe"
+  },
+  "electronVersion": "43.2.0"
+}

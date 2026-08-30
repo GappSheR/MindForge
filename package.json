@@ -1,0 +1,38 @@
+{
+  "name": "quiz-made-by-gappsheervip777",
+  "version": "1.0.0",
+  "description": "Quiz Studio & Game Made by GappSheRVIP777",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev:game": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev:studio": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --studio\"",
+    "build": "vite build",
+    "pack:game": "vite build && electron-builder --config electron-builder-game.json",
+    "pack:studio": "vite build && electron-builder --config electron-builder-studio.json",
+    "pack:admin": "vite build && electron-builder --config electron-builder-admin.json"
+  },
+  "keywords": [],
+  "author": "GappSheRVIP777",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
+    "adm-zip": "^0.6.0",
+    "howler": "^2.2.4",
+    "jszip": "^3.10.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.4",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "electron-packager": "^17.1.2",
+    "vite": "^8.1.5",
+    "wait-on": "^9.1.0"
+  }
+}

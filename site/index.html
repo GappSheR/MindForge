@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MindForge — викторины | Made by GappSheRVIP777</title>
+<meta name="description" content="MindForge — три программы для создания, проведения викторин и администрирования. QuizForge Studio, MindForge Quiz, MindForge Admin Game." />
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --text: #e6edf3; --muted: #9aa5b1;
+    --accent: #007ACC; --border: #262c36;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+  header { text-align: center; margin-bottom: 48px; }
+  .logo { width: 96px; height: 96px; border-radius: 20px; margin-bottom: 16px; }
+  h1 { font-size: 42px; font-weight: 700; }
+  .sub { color: var(--muted); margin-top: 8px; font-size: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 28px; margin-bottom: 20px;
+  }
+  .card h2 { font-size: 22px; margin-bottom: 8px; }
+  .card p { color: var(--muted); line-height: 1.6; }
+  .feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px; }
+  .feat { background: rgba(0,122,204,0.08); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .feat b { display: block; margin-bottom: 4px; }
+  .feat span { font-size: 13px; color: var(--muted); }
+  .btn {
+    display: inline-block; background: var(--accent); color: #fff;
+    text-decoration: none; padding: 12px 24px; border-radius: 8px;
+    font-weight: 600; margin: 6px 6px 0 0; transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn.ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+  footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 32px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="logo" src="icon.png" alt="MindForge" />
+    <h1>MindForge</h1>
+    <div class="sub">Создавай, проводи и администрируй викторины — Made by GappSheRVIP777</div>
+  </header>
+
+  <div class="card">
+    <h2>Три программы в одном семействе</h2>
+    <p>Полный комплект для работы с викторинами: редактор, игрок и панель управления аккаунтами.</p>
+    <div class="feats">
+      <div class="feat"><b>QuizForge Studio</b><span>Редактор .qgpsh-проектов: слайды, таймеры, медиа, метаданные.</span></div>
+      <div class="feat"><b>MindForge Quiz</b><span>Игра-показ викторин: экран ведущего, команды, аудитория.</span></div>
+      <div class="feat"><b>MindForge Admin Game</b><span>Управление аккаунтами, баланс в тенге, выдача средств.</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Скачать последние версии</h2>
+    <p>Обновления приходят из GitHub Releases — приложения проверяют их автоматически при запуске.</p>
+    <p style="margin-top:14px">
+      <a class="btn" href="https://github.com/GappSheRVIP777/MindForge/releases/latest" target="_blank">Скачать с GitHub</a>
+      <a class="btn ghost" href="https://github.com/GappSheRVIP777/MindForge" target="_blank">Исходный код</a>
+    </p>
+  </div>
+
+  <footer>MindForge © 2026 GappSheRVIP777 · Made in Kazakhstan · Бесплатно навсегда</footer>
+</div>
+</body>
+</html>
