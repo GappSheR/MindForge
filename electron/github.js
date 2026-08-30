@@ -259,6 +259,130 @@ async function syncUsers() {
   return readUsersLocal();
 }
 
+// ─── Хранилище викторин (магазин форматов .qgpsh) ───────────────────────
+// Каталог живёт в репозитории: store/catalog.json + store/<файл>.qgpsh
+
+const RAW_BASE = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/main`;
+const API_BASE = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents`;
+
+// Запрос к API с токеном (для публикации)
+function apiReq(method, url, body) {
+  return new Promise((resolve, reject) => {
+    const data = body ? JSON.stringify(body) : null;
+    const req = https.request(`${API_BASE}/${url}`, {
+      method,
+      headers: {
+        'User-Agent': 'mindforge',
+        Authorization: `token ${CONFIG.token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {}),
+      },
+    }, (res) => {
+      let d = '';
+      res.setEncoding('utf8');
+      res.on('data', c => d += c);
+      res.on('end', () => {
+        let j = null;
+        try { j = JSON.parse(d); } catch (e) {}
+        if (res.statusCode >= 400) return reject(new Error((j && j.message) || ('HTTP ' + res.statusCode)));
+        resolve(j);
+      });
+    });
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+// Получить каталог викторин (публично, через API — без CDN-кэша)
+async function getCatalog() {
+  try {
+    const res = await httpRequest(`${API_BASE}/store/catalog.json?ts=${Date.now()}`, {
+      'User-Agent': 'mindforge',
+      Accept: 'application/vnd.github.raw+json',
+    });
+    if (res.status !== 200) return [];
+    const list = JSON.parse(res.body);
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// URL для скачивания файла .qgpsh из хранилища
+function quizDownloadUrl(fileName) {
+  const enc = fileName.split('/').map(encodeURIComponent).join('/');
+  return `${RAW_BASE}/store/${enc}`;
+}
+
+// Опубликовать квиз: загрузить .qgpsh в репо и обновить каталог
+async function publishQuiz({ filePath, title, description, price, author }) {
+  if (!CONFIG.token) return { ok: false, error: 'Нет токена GitHub — заполните electron/.gh_token' };
+  if (!fs.existsSync(filePath)) return { ok: false, error: 'Файл не найден: ' + filePath };
+
+  const fileBytes = fs.readFileSync(filePath);
+  if (fileBytes.length > 95 * 1024 * 1024) {
+    return { ok: false, error: 'Ограничение GitHub — файл больше 95 МБ' };
+  }
+
+  const base = path.basename(filePath);
+  const needSlug = /[^a-z0-9._-]/i;
+  const fileName = needSlug.test(base) ? 'quiz-' + Date.now() + '.qgpsh' : base;
+  const fileKey = 'store/' + fileName;
+  const name = (title || base).replace(/\.qgpsh$/i, '');
+  const qid = 'q_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') + '_' + Date.now().toString(36);
+
+  // 1) Загрузить файл .qgpsh
+  try {
+    let sha = null;
+    try {
+      const info = await apiReq('GET', encodeURI(fileKey));
+      sha = info.sha;
+    } catch (e) {}
+    const uploaded = await apiReq('PUT', encodeURI(fileKey), {
+      message: 'Publish quiz ' + fileName + (sha ? ' (update)' : ''),
+      content: fileBytes.toString('base64'),
+      ...(sha ? { sha } : {}),
+    });
+    if (!uploaded) return { ok: false, error: 'Не удалось загрузить файл' };
+
+    // 2) Обновить каталог
+    const catalog = await getCatalog();
+    const existsIdx = catalog.findIndex(q => q.file === fileName);
+    const entry = {
+      id: existsIdx >= 0 ? catalog[existsIdx].id : qid,
+      title: name,
+      description: description || '',
+      price: Number(price) || 0,
+      author: author || 'GappSheR',
+      file: fileName,
+      size: fileBytes.length,
+      sizeMb: Math.round((fileBytes.length / 1024 / 1024) * 10) / 10,
+      published: existsIdx >= 0 ? catalog[existsIdx].published : new Date().toISOString(),
+      updated: new Date().toISOString(),
+    };
+    if (existsIdx >= 0) catalog[existsIdx] = entry;
+    else catalog.push(entry);
+
+    const base64 = Buffer.from(JSON.stringify(catalog, null, 2)).toString('base64');
+    let catSha = null;
+    try {
+      const info = await apiReq('GET', 'store/catalog.json');
+      catSha = info.sha;
+    } catch (e) {}
+    await apiReq('PUT', 'store/catalog.json', {
+      message: 'Update catalog (' + (existsIdx >= 0 ? 'update' : 'add') + ': ' + name + ')',
+      content: base64,
+      ...(catSha ? { sha: catSha } : {}),
+    });
+
+    return { ok: true, quiz: entry };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 module.exports = {
   CONFIG,
   checkUpdate,
@@ -268,6 +392,10 @@ module.exports = {
   syncUsers,
   readUsersLocal,
   writeUsersLocal,
+  getCatalog,
+  publishQuiz,
+  quizDownloadUrl,
+  downloadTo: download,
   SHARE_DIR,
   USERS_FILE,
 };

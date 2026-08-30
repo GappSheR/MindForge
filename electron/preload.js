@@ -28,6 +28,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   ghApplyUpdate: () => ipcRenderer.invoke('gh-apply-update'),
   ghStagedUpdate: () => ipcRenderer.invoke('gh-staged-update'),
   usersSync: () => ipcRenderer.invoke('users-sync'),
+  shopCatalog: () => ipcRenderer.invoke('shop-catalog'),
+  quizPublish: (opts) => ipcRenderer.invoke('quiz-publish', opts),
+  quizDownloadUrl: (fileName) => ipcRenderer.invoke('quiz-download-url', fileName),
+  quizDownload: (fileName, destDir) => ipcRenderer.invoke('quiz-download', fileName, destDir),
   on: (channel, callback) => ipcRenderer.on(channel, (event, ...args) => callback(...args)),
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
 });

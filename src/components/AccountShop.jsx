@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, Button, Typography, Box, Tabs, Tab, List, ListItem,
-  ListItemIcon, ListItemText, IconButton, Avatar, Chip,
+  ListItemIcon, ListItemText, IconButton, Avatar, Chip, CircularProgress,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { useAppTheme } from '../theme.jsx';
 
 const SHOP_ITEMS = [
@@ -28,6 +31,9 @@ export default function AccountShop({ user, onLogin, onLogout, open: openProp = 
   const [pass2, setPass2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [catalog, setCatalog] = useState([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [downloadState, setDownloadState] = useState({}); // file -> 'downloading'|'done'
 
   useEffect(() => {
     setOpen(openProp);
@@ -36,6 +42,24 @@ export default function AccountShop({ user, onLogin, onLogout, open: openProp = 
   useEffect(() => {
     if (user) setTab(1);
   }, [user]);
+
+  // Загружаем каталог при открытии (или обновлении)
+  useEffect(() => {
+    if (open && window.electronAPI) {
+      loadCatalog();
+    }
+  }, [open]);
+
+  const loadCatalog = async () => {
+    setCatalogLoading(true);
+    try {
+      const list = await window.electronAPI.shopCatalog();
+      setCatalog(Array.isArray(list) ? list : []);
+    } catch (e) {
+      setCatalog([]);
+    }
+    setCatalogLoading(false);
+  };
 
   const doLogin = async () => {
     setError('');
@@ -65,12 +89,35 @@ export default function AccountShop({ user, onLogin, onLogout, open: openProp = 
 
   const doBuy = async (item) => {
     if (!user) return;
+    setError('');
     const res = await window.electronAPI.shopBuy(user.username, item.id, item.price);
     if (!res.ok) { setError(res.error); return; }
     onLogin({ ...user, balance: res.balance, items: res.items });
   };
 
+  const doDownload = async (quiz) => {
+    if (!user) return;
+    const itemId = quiz.id;
+    setError('');
+    try {
+      setDownloadState(s => ({ ...s, [quiz.file]: 'downloading' }));
+      const folder = await window.electronAPI.openDirectoryDialog();
+      if (!folder) { setDownloadState(s => ({ ...s, [quiz.file]: '' })); return; }
+      const res = await window.electronAPI.quizDownload(quiz.file, folder);
+      setDownloadState(s => ({ ...s, [quiz.file]: '' }));
+      if (!res.ok) { setError(res.error || 'Ошибка скачивания'); return; }
+      // Помечаем как скачанный
+      onLogin({ ...user, items: [...(user.items || []), itemId + ':downloaded'] });
+      setError('');
+    } catch (e) {
+      setDownloadState(s => ({ ...s, [quiz.file]: '' }));
+      setError('Ошибка: ' + e.message);
+    }
+  };
+
   const owned = user?.items || [];
+  const quizBought = (quiz) => owned.includes(quiz.id);
+  const quizDownloaded = (quiz) => owned.includes(quiz.id + ':downloaded');
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
@@ -125,6 +172,73 @@ export default function AccountShop({ user, onLogin, onLogout, open: openProp = 
         )}
 
         {user && (
+          <Tabs value={tab} onChange={(_, v) => { setTab(v); setError(''); }} sx={{ mb: 1 }}>
+            <Tab label="Форматы викторин" />
+            <Tab label="Темы" />
+          </Tabs>
+        )}
+
+        {user && tab === 0 && (
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              {catalogLoading ? <CircularProgress size={16} /> : (
+                <IconButton size="small" onClick={loadCatalog} title="Обновить каталог"><RefreshIcon fontSize="small" /></IconButton>
+              )}
+              <Typography variant="caption" sx={{ color: theme.muted }}>
+                Викторины от авторов. После покупки — скачивайте сколько угодно раз.
+              </Typography>
+            </Box>
+            {catalog.length === 0 && !catalogLoading && (
+              <Typography variant="body2" sx={{ color: theme.muted, textAlign: 'center', py: 3 }}>
+                Магазин форматов пока пуст. Загляните позже — авторы выкладывают новые викторины.
+              </Typography>
+            )}
+            <List>
+              {catalog.map(quiz => {
+                const bought = quizBought(quiz);
+                const downloaded = quizDownloaded(quiz);
+                return (
+                  <ListItem key={quiz.id} sx={{ border: `1px solid ${theme.border}`, borderRadius: 1, mb: 1 }}>
+                    <ListItemIcon>
+                      <SportsEsportsIcon sx={{ color: theme.accent }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={quiz.title}
+                      secondary={[
+                        `${quiz.price} ₸`,
+                        quiz.description ? quiz.description.slice(0, 60) : null,
+                        quiz.author ? `@${quiz.author}` : null,
+                        quiz.sizeMb ? `${quiz.sizeMb} МБ` : null,
+                      ].filter(Boolean).join(' · ')}
+                    />
+                    {bought ? (
+                      downloaded ? (
+                        <Chip label="Скачено" size="small" color="success" />
+                      ) : (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={downloadState[quiz.file] === 'downloading' ? <CircularProgress size={14} /> : <DownloadIcon />}
+                          disabled={downloadState[quiz.file] === 'downloading'}
+                          onClick={() => doDownload(quiz)}
+                        >
+                          Скачать
+                        </Button>
+                      )
+                    ) : (
+                      <Button size="small" variant="contained" onClick={() => doBuy(quiz)} disabled={(user.balance || 0) < quiz.price}>
+                        Купить за {quiz.price} ₸
+                      </Button>
+                    )}
+                  </ListItem>
+                );
+              })}
+            </List>
+            {error && <Typography color="error" variant="body2" sx={{ mt: 1 }}>{error}</Typography>}
+          </Box>
+        )}
+
+        {user && tab === 1 && (
           <List>
             {SHOP_ITEMS.map(item => {
               const bought = owned.includes(item.id);

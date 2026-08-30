@@ -294,7 +294,7 @@ ipcMain.handle('user-login', (_, login, password) => {
   );
   if (!user) return { ok: false, error: 'Аккаунт не найден' };
   if (user.password !== password) return { ok: false, error: 'Неверный пароль' };
-  return { ok: true, user: { username: user.username, name: user.name, balance: user.balance || 0 } };
+  return { ok: true, user: { username: user.username, name: user.name, balance: user.balance || 0, items: user.items || [] } };
 });
 
 ipcMain.handle('user-register', (_, data) => {
@@ -362,6 +362,22 @@ ipcMain.handle('gh-update-now', async () => gh.updateApp());
 ipcMain.handle('gh-apply-update', () => gh.applyStagedUpdate());
 ipcMain.handle('gh-staged-update', () => gh.stagedUpdateInfo());
 ipcMain.handle('users-sync', async () => gh.syncUsers());
+
+// ─── Хранилище викторин (магазин форматов) ──────────────────────────────
+ipcMain.handle('shop-catalog', async () => gh.getCatalog().catch(() => []));
+ipcMain.handle('quiz-publish', async (_, opts) => gh.publishQuiz(opts).catch(e => ({ ok: false, error: e.message })));
+ipcMain.handle('quiz-download-url', (_, fileName) => gh.quizDownloadUrl(fileName));
+ipcMain.handle('quiz-download', async (_, fileName, destDir) => {
+  try {
+    const url = gh.quizDownloadUrl(fileName);
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+    const dest = path.join(destDir, path.basename(fileName));
+    await gh.downloadTo(url, dest);
+    return { ok: true, path: dest };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
 
 // ─── Запуск ─────────────────────────────────────────────────────────────
 
