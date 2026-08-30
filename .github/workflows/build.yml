@@ -25,8 +25,8 @@ jobs:
 
       - name: Package game + studio (electron-packager)
         run: |
-          npx electron-packager . "MindForge Quiz" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar
-          npx electron-packager . "QuizForge Studio" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar
+          npx electron-packager . "MindForge Quiz" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar --ignore="^/(site|store|\.github|admin_app|dist_exe|release)(/|$)"
+          npx electron-packager . "QuizForge Studio" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar --ignore="^/(site|store|\.github|admin_app|dist_exe|release)(/|$)"
 
       - name: Package admin (separate app)
         working-directory: ./admin_app
@@ -36,17 +36,17 @@ jobs:
       - name: Rename exes
         shell: pwsh
         run: |
-          Rename-Item "..\release\MindForge Quiz\MindForge Quiz.exe" "MindForge Quiz Made by GappSheRVIP777.exe"
-          Rename-Item "..\release\QuizForge Studio\QuizForge Studio.exe" "QuizForge Studio Made by GappSheRVIP777.exe"
-          Rename-Item "..\release\MindForge Admin Game\MindForge Admin Game.exe" "MindForge Admin Game Made by GappSheRVIP777.exe"
+          Get-ChildItem -Path "..\release" -Recurse -Filter "*.exe" | Where-Object { $_.Name -like "MindForge Quiz.exe" } | Rename-Item -NewName "MindForge Quiz Made by GappSheRVIP777.exe"
+          Get-ChildItem -Path "..\release" -Recurse -Filter "*.exe" | Where-Object { $_.Name -like "QuizForge Studio.exe" } | Rename-Item -NewName "QuizForge Studio Made by GappSheRVIP777.exe"
+          Get-ChildItem -Path "..\release" -Recurse -Filter "*.exe" | Where-Object { $_.Name -like "MindForge Admin Game.exe" } | Rename-Item -NewName "MindForge Admin Game Made by GappSheRVIP777.exe"
 
       - name: Pack zips
         shell: pwsh
         working-directory: ../release
         run: |
-          Compress-Archive -Path "MindForge Quiz\*" -DestinationPath "MindForge Quiz.zip" -Force
-          Compress-Archive -Path "QuizForge Studio\*" -DestinationPath "QuizForge Studio.zip" -Force
-          Compress-Archive -Path "MindForge Admin Game\*" -DestinationPath "MindForge Admin Game.zip" -Force
+          Compress-Archive -Path "MindForge Quiz*\*" -DestinationPath "MindForge Quiz.zip" -Force
+          Compress-Archive -Path "QuizForge Studio*\*" -DestinationPath "QuizForge Studio.zip" -Force
+          Compress-Archive -Path "MindForge Admin Game*\*" -DestinationPath "MindForge Admin Game.zip" -Force
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
