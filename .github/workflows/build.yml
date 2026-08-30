@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -16,33 +21,30 @@ jobs:
           node-version: 20
 
       - name: Install deps
-        working-directory: ./Quiz
         run: |
           npm ci
           npx vite build
 
       - name: Package game + studio (electron-packager)
-        working-directory: ./Quiz
         run: |
           npx electron-packager . "MindForge Quiz" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar
           npx electron-packager . "QuizForge Studio" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../release --overwrite --no-asar
 
       - name: Package admin (separate app)
-        working-directory: ./Quiz/admin_app
+        working-directory: ./admin_app
         run: |
-          npx electron-packager . "MindForge Admin Game" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../../release --overwrite --no-asar
+          npx electron-packager . "MindForge Admin Game" --platform=win32 --arch=x64 --electron-version=43.2.0 --out=../../release --overwrite --no-asar --icon=ico/icon_admin.ico
 
       - name: Rename exes
-        working-directory: ./release
         shell: pwsh
         run: |
-          Rename-Item ".\MindForge Quiz\MindForge Quiz.exe" "MindForge Quiz Made by GappSheRVIP777.exe"
-          Rename-Item ".\QuizForge Studio\QuizForge Studio.exe" "QuizForge Studio Made by GappSheRVIP777.exe"
-          Rename-Item ".\MindForge Admin Game\MindForge Admin Game.exe" "MindForge Admin Game Made by GappSheRVIP777.exe"
+          Rename-Item "..\release\MindForge Quiz\MindForge Quiz.exe" "MindForge Quiz Made by GappSheRVIP777.exe"
+          Rename-Item "..\release\QuizForge Studio\QuizForge Studio.exe" "QuizForge Studio Made by GappSheRVIP777.exe"
+          Rename-Item "..\release\MindForge Admin Game\MindForge Admin Game.exe" "MindForge Admin Game Made by GappSheRVIP777.exe"
 
       - name: Pack zips
-        working-directory: ./release
         shell: pwsh
+        working-directory: ../release
         run: |
           Compress-Archive -Path "MindForge Quiz\*" -DestinationPath "MindForge Quiz.zip" -Force
           Compress-Archive -Path "QuizForge Studio\*" -DestinationPath "QuizForge Studio.zip" -Force
@@ -51,15 +53,11 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release/*.zip
+          files: ../release/*.zip
           generate_release_notes: true
 
   pages:
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
