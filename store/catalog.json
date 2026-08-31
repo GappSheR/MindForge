@@ -14,5 +14,21 @@
     "sizeMb": 2.4,
     "published": "2026-08-31T08:36:14.004Z",
     "updated": "2026-08-31T08:36:14.004Z"
+  },
+  {
+    "id": "q__mth35hjz",
+    "title": "Новая викторина",
+    "description": "",
+    "price": 100,
+    "author": "GappSheRVIP777",
+    "grade": "7",
+    "letter": "б",
+    "subject": "История",
+    "lesson": "9999",
+    "file": "quiz-1788171517727.qgp",
+    "size": 2497412,
+    "sizeMb": 2.4,
+    "published": "2026-08-31T10:18:40.772Z",
+    "updated": "2026-08-31T10:18:40.772Z"
   }
 ]
